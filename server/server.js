@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const {readdirSync} = require('fs');
+const mongoose = require('mongoose');
 
 // enviorment file configuration
 require('dotenv').config();
@@ -17,6 +18,7 @@ const corsOption = {
 // config code
 app.use(cors(corsOption));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
 
 // config all router
 readdirSync('./routes').map((fileName) => {
@@ -35,4 +37,13 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 8000;
 app.listen(PORT,() => {
     console.log(`SERVER IS LISTENING ON ${PORT} 🚀.`);
+
+    //connect to mongodb
+    mongoose.connect(process.env.MONGODB_URI)
+    .then((res) => {
+        console.log(`MONGODB IS CONNECTED 🍁 : ${res.connection.host}`);
+    })
+    .catch((err) => {
+        console.log(`Something went wrong : ${err}`);
+    })
 })
