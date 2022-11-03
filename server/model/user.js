@@ -43,7 +43,7 @@ const userSchema =  mongoose.Schema({
             required : [true, 'Number is required.'],
         }
     },
-    verifed : {
+    verified : {
         type : Boolean,
         default : false
     },

@@ -2,7 +2,7 @@ const User = require('../model/user');
 const getNameCapitalize = require('../utils/getNameCapitalize');
 const { validateEmail, validateLength, validatePassword } = require('../utils/validator');
 const bcrypt = require('bcrypt');
-const { genrateToken } = require('../utils/token');
+const { genrateToken, verifyToken } = require('../utils/token');
 const { sendVerficationLink } = require('../utils/Mailer');
 
 //register user
@@ -70,16 +70,23 @@ exports.registerUser = async (req,res) => {
         const verficationToken = genrateToken({id : user._id.toString()},'2h');
         const url = `${process.env.BASE_URL}/activate/${verficationToken}`;
 
+        // verification link send to mail
         sendVerficationLink(user.email,`${user.firstName} ${user.lastName}`, url);
 
-        // if user created
-        if(user){
-            return res.status(200).json({
-                success : true,
-                message : `User created successfully`,
-                user
-            })
-        }
+        // token
+        const token = genrateToken({id : user._id.toString()},'7d');
+
+        // When user is created.
+        res.send({
+            id : user._id,
+            firstName : user.firstName ,
+            lastName : user.lastName,
+            profile : user.profilePic,
+            token,
+            verified : user.verified,
+            message : `Account Register Successfully! Please verify your account, Check your Mail.`
+        })
+        
 
     } catch (error) {
         return res.status(500).json({
@@ -88,3 +95,59 @@ exports.registerUser = async (req,res) => {
         })
     }
 }
+
+// activate account
+exports.activateAccount = async (req,res) => {
+    try{
+        // id and token from params
+        const {token} = req.params;
+
+        // verify user token
+        const userToken = verifyToken(token);
+
+        // search user in database by id
+        const user = await User.findById(userToken.id);
+
+        // If user is not found
+        if(!user){
+            return res.status(400).json({
+                success : false,
+                error : `Invalid token or Token has been expired.`
+            })
+        }
+
+        // if verified is already true
+        if(user.verified === true){
+            return res.status(400).json({
+                success : false,
+                error : `Account is already activated.`
+            })
+        }
+
+        // if token is valid and account is activated
+        await User.findByIdAndUpdate(user.id,{
+            verified : true
+        }).catch((err) => {
+            return res.status(400).json({
+                success : false,
+                error : `Something went wrong : ${err}`
+            })
+        })
+        
+        const verifiedUser = await User.findById(user.id)
+        
+        return res.send({
+            message : `Your account has been activated.`,
+            user : verifiedUser
+        })
+      
+
+    } catch (error) {
+        return res.status(400).json({
+            success : false,
+            error : `Invalid token or Token has been expired.`
+        })
+    }
+}
+
+// login user 
