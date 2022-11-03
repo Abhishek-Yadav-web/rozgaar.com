@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const companySchema = new mongoose.Schema({
-    accountType: String,
     company:{
         type: String,
         required : [true, 'FirstName is required.'],
@@ -85,9 +84,14 @@ const companySchema = new mongoose.Schema({
         jobRequest : {
             type : Array,
             default : []
-        },
-        timestamps : true
+        }
+    },
+    accountHolder : {
+        type : String,
+        default : "User"
     }
-})
+},
+{timestamps: true}
+)
 
 module.exports = mongoose.Model('Company', userSchema)

@@ -33,6 +33,10 @@ app.get('/', (req, res) => {
 })
 
 
+app.get('/email',(req,res) => {
+    res.sendFile(path.join(__dirname+'/public/verification.html'))
+})
+
 // listen on port
 const PORT = process.env.PORT || 8000;
 app.listen(PORT,() => {

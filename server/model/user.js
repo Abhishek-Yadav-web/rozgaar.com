@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const userSchema =  mongoose.Schema({
-    accountType: String,
     firstName:{
         type: String,
         required : [true, 'FirstName is required.'],
@@ -43,6 +42,10 @@ const userSchema =  mongoose.Schema({
             type : Number,
             required : [true, 'Number is required.'],
         }
+    },
+    verifed : {
+        type : Boolean,
+        default : false
     },
     resumeInfo : {
         profileTitle : {
@@ -123,8 +126,16 @@ const userSchema =  mongoose.Schema({
             type : Array,
             default : [] 
         },
+    },
+    accountHolder : {
+        type : String,
+        default : "User"
     }
-})
+},
+{
+    timestamps : true
+}
+)
 
 
 module.exports =  mongoose.model('User', userSchema)

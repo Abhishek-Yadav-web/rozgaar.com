@@ -2,6 +2,8 @@ const User = require('../model/user');
 const getNameCapitalize = require('../utils/getNameCapitalize');
 const { validateEmail, validateLength, validatePassword } = require('../utils/validator');
 const bcrypt = require('bcrypt');
+const { genrateToken } = require('../utils/token');
+const { sendVerficationLink } = require('../utils/Mailer');
 
 //register user
 exports.registerUser = async (req,res) => {
@@ -30,12 +32,13 @@ exports.registerUser = async (req,res) => {
                 error : `Last Name should be at least 3 characters long and maxium 30 characters long`
             })
         }
-
+        
         // validate password length
-        if(!validatePassword(password,8,32)){
+        if(validatePassword(password).length > 0){
+            let err = validatePassword(password)
             return res.status(400).json({
                 success : false,
-                error : `Password should be at least 8 characters long and maxium 32 characters long`
+                error : err
             })
         }
 
@@ -63,6 +66,11 @@ exports.registerUser = async (req,res) => {
             mobile
         }).save();
         
+        // verification Link Token
+        const verficationToken = genrateToken({id : user._id.toString()},'2h');
+        const url = `${process.env.BASE_URL}/activate/${verficationToken}`;
+
+        sendVerficationLink(user.email,`${user.firstName} ${user.lastName}`, url);
 
         // if user created
         if(user){
@@ -72,7 +80,7 @@ exports.registerUser = async (req,res) => {
                 user
             })
         }
-        
+
     } catch (error) {
         return res.status(500).json({
             success : false,
